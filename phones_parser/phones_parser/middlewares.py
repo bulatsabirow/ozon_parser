@@ -2,11 +2,18 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+from random import randint
+from time import sleep
 
 from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
+from scrapy.http import HtmlResponse
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 class PhonesParserSpiderMiddleware:
@@ -61,6 +68,26 @@ class PhonesParserDownloaderMiddleware:
     # scrapy acts as if the downloader middleware does not modify the
     # passed objects.
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        options = Options()
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+
+        self.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+            'source': """
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Array;
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_JSON;
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Promise;
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Object;
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Symbol;
+                delete window.cdc_adoQpoasnfa76pfcZLmcfl_Proxy;
+
+            """
+        })
+
     @classmethod
     def from_crawler(cls, crawler):
         # This method is used by Scrapy to create your spiders.
@@ -78,7 +105,13 @@ class PhonesParserDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        return None
+        self.driver.get(request.url)
+        sleep(randint(4, 5))
+        content = self.driver.page_source
+        self.driver.delete_all_cookies()
+        return HtmlResponse(
+            request.url, encoding="utf-8", body=content, request=request
+        )
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
