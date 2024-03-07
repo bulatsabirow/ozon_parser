@@ -2,6 +2,7 @@
 #
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+import time
 from random import randint
 from time import sleep
 
@@ -106,7 +107,8 @@ class PhonesParserDownloaderMiddleware:
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
         self.driver.get(request.url)
-        sleep(randint(4, 5))
+        time.sleep(randint(4, 5))
+        print("!!request.url", request.url)
         content = self.driver.page_source
         self.driver.delete_all_cookies()
         return HtmlResponse(
