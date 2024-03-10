@@ -6,22 +6,26 @@ from itemloaders import ItemLoader
 from scrapy import Request
 
 from phones_parser.items import PhonesParserItem
+from phones_parser.mixins import BasePaginationMixin
+from phones_parser.services import xpath_lookup_filter
+from phones_parser.spiders.constants import START_URL
 
 
-class OzonPhonesSpider(scrapy.Spider):
-    TOTAL_ITEMS_COUNT = 10
+class OzonPhonesPaginationMixin(BasePaginationMixin):
+    start_url = START_URL
+
+    def get_query_params(self):
+        return {**super().get_query_params(), "sorting": "rating"}
+
+
+class OzonPhonesSpider(OzonPhonesPaginationMixin, scrapy.Spider):
+    TOTAL_ITEMS_COUNT = 100
     name = "ozon_phones"
     allowed_domains = ["www.ozon.ru"]
-    start_url = "https://www.ozon.ru/category/smartfony-15502/"
 
     def __init__(self, *args, **kwargs):
         super(OzonPhonesSpider, self).__init__(*args, **kwargs)
         self.counter = 0
-        self.page = 1
-        self.start_urls = [self.get_paginated_page()]
-
-    def get_paginated_page(self):
-        return f'{self.start_url}?{urlencode({"page": self.page, "sorting": "rating"})}'
 
     def parse(self, response):
         links = response.css("div.widget-search-result-container.i7x > .xi7 > .vi6.v6i > .iv7 > a::attr(href)").getall()
@@ -38,14 +42,10 @@ class OzonPhonesSpider(scrapy.Spider):
             print("page =", self.get_paginated_page())
             yield response.follow(self.get_paginated_page(), callback=self.parse)
 
-    @staticmethod
-    def xpath_lookup_filter(value: str) -> str:
-        return f"//dt[span[contains(text(), '{value}')]]/following-sibling::dd//text()"
-
     def parse_phone(self, response):
         loader = ItemLoader(item=PhonesParserItem(), selector=response)
-        os_xpath = self.xpath_lookup_filter('Операционная система')
-        version_xpath = self.xpath_lookup_filter('ерсия')
+        os_xpath = f"{xpath_lookup_filter('Операционная система')}//text()"
+        version_xpath = f"{xpath_lookup_filter('ерсия')}//text()"
 
         loader.add_xpath("os", os_xpath)
         loader.add_xpath("version", version_xpath)

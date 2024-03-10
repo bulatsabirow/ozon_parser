@@ -26,6 +26,7 @@ class PhonesParserPipeline:
     def close_spider(self, spider):
         dataframe = pd.DataFrame(self.items)
         distribution = dataframe.value_counts(sort=True)
+
         with open(os.path.join("..", "results.csv"), "w", encoding="utf-8") as file:
             file.write(distribution.to_csv())
         print("Results: ", dataframe, distribution, sep="\n")

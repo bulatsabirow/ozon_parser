@@ -17,6 +17,9 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
 
+from phones_parser.services import xpath_lookup_filter
+from phones_parser.spiders.constants import START_URL
+
 
 class PhonesParserSpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -111,12 +114,12 @@ class PhonesParserDownloaderMiddleware:
         # - or return a Request object
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
-        self.driver.get(request.url)
 
-        method = lambda driver: EC.presence_of_element_located((By.XPATH, "//dt[span[contains(text(), 'Операционная система')]]/following-sibling::dd"))
-        if request.url.startswith("https://www.ozon.ru/category/smartfony-15502/"):
+        method = lambda driver: EC.presence_of_element_located((By.XPATH, xpath_lookup_filter('Операционная система')))
+        if request.url.startswith(START_URL):
             method = lambda driver: len(driver.find_elements(By.CSS_SELECTOR, "div.widget-search-result-container.i7x > .xi7 > .vi6.v6i")) == self.ITEMS_PER_PAGE
 
+        self.driver.get(request.url)
         WebDriverWait(self.driver, timeout=self.PAGE_LOADING_TIMEOUT).until(method)
         time.sleep(self.COMMON_TIMEOUT)
         content = self.driver.page_source
