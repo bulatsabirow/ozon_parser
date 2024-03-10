@@ -9,6 +9,7 @@ from phones_parser.items import PhonesParserItem
 
 
 class OzonPhonesSpider(scrapy.Spider):
+    TOTAL_ITEMS_COUNT = 10
     name = "ozon_phones"
     allowed_domains = ["www.ozon.ru"]
     start_url = "https://www.ozon.ru/category/smartfony-15502/"
@@ -27,7 +28,7 @@ class OzonPhonesSpider(scrapy.Spider):
         print(f"{links=} ", len(links))
         for link in links:
             self.counter += 1
-            if self.counter > 100:
+            if self.counter > self.TOTAL_ITEMS_COUNT:
                 break
 
             print("link = ", self.counter, link)
@@ -48,7 +49,6 @@ class OzonPhonesSpider(scrapy.Spider):
 
         loader.add_xpath("os", os_xpath)
         loader.add_xpath("version", version_xpath)
-        loader.add_value("url", response.url)
 
         item = loader.load_item()
         print("item = ", item)

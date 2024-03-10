@@ -29,4 +29,3 @@ class PhonesParserItem(scrapy.Item):
         input_processor=MapCompose(clean_data),
         output_processor=TakeFirst()
     )
-    url = scrapy.Field()
