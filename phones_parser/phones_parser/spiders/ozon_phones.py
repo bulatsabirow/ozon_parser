@@ -15,7 +15,7 @@ class OzonPhonesPaginationMixin(BasePaginationMixin):
 
 
 class OzonPhonesSpider(OzonPhonesPaginationMixin, scrapy.Spider):
-    TOTAL_ITEMS_COUNT = 100
+    TOTAL_ITEMS_COUNT = 10
     name = "ozon_phones"
     allowed_domains = ["www.ozon.ru"]
 
