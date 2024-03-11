@@ -4,8 +4,9 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import os
 
-from itemadapter import ItemAdapter
+import numpy as np
 import pandas as pd
+
 
 # useful for handling different item types with a single interface
 
@@ -17,14 +18,15 @@ class PhonesParserPipeline:
 
     def process_item(self, item, spider):
         item.setdefault("os", "Другое")
-        item.setdefault("version", None)
-        print("item = ", item)
+        item.setdefault("version", np.NaN)
+
         self.items.append(item)
         return item
 
     def close_spider(self, spider):
         dataframe = pd.DataFrame(self.items)
-        distribution = dataframe.value_counts(sort=True, dropna=False)
+        distribution = dataframe.value_counts(dropna=False, sort=True)
+        distribution.astype(int)
 
         with open(os.path.join("..", "results.csv"), "w", encoding="utf-8") as file:
-            file.write(distribution.to_csv())
+            file.write(distribution.to_csv(na_rep=str(np.NaN), sep="\t"))

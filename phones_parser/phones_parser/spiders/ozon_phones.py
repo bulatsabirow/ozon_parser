@@ -1,9 +1,5 @@
-from typing import Iterable
-from urllib.parse import urlencode
-
 import scrapy
 from itemloaders import ItemLoader
-from scrapy import Request
 
 from phones_parser.items import PhonesParserItem
 from phones_parser.mixins import BasePaginationMixin
@@ -29,17 +25,15 @@ class OzonPhonesSpider(OzonPhonesPaginationMixin, scrapy.Spider):
 
     def parse(self, response):
         links = response.css("div.widget-search-result-container.i7x > .xi7 > .vi6.v6i > .iv7 > a::attr(href)").getall()
-        print(f"{links=} ", len(links))
+
         for link in links:
             self.counter += 1
             if self.counter > self.TOTAL_ITEMS_COUNT:
                 break
 
-            print("link = ", self.counter, link)
             yield response.follow(link, callback=self.parse_phone)
         else:
             self.page += 1
-            print("page =", self.get_paginated_page())
             yield response.follow(self.get_paginated_page(), callback=self.parse)
 
     def parse_phone(self, response):
@@ -51,5 +45,4 @@ class OzonPhonesSpider(OzonPhonesPaginationMixin, scrapy.Spider):
         loader.add_xpath("version", version_xpath)
 
         item = loader.load_item()
-        print("item = ", item)
         yield item

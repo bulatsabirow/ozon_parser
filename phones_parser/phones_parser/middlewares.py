@@ -3,10 +3,9 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 import time
-from operator import eq
-from random import randint
 
 from scrapy import signals
+
 # useful for handling different item types with a single interface
 from scrapy.http import HtmlResponse
 from selenium import webdriver
@@ -89,13 +88,13 @@ class PhonesParserDownloaderMiddleware:
 
         options = Options()
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option('useAutomationExtension', False)
+        options.add_experimental_option("useAutomationExtension", False)
         options.add_argument("--disable-blink-features=AutomationControlled")
 
         self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-        self.driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
-            'source': self.BYPASS_ANTIBOT_CHALLENGE_JS_SCRIPT
-        })
+        self.driver.execute_cdp_cmd(
+            "Page.addScriptToEvaluateOnNewDocument", {"source": self.BYPASS_ANTIBOT_CHALLENGE_JS_SCRIPT}
+        )
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -115,18 +114,21 @@ class PhonesParserDownloaderMiddleware:
         # - or raise IgnoreRequest: process_exception() methods of
         #   installed downloader middleware will be called
 
-        method = lambda driver: EC.presence_of_element_located((By.XPATH, xpath_lookup_filter('Операционная система')))
+        method = lambda driver: EC.presence_of_element_located((By.XPATH, xpath_lookup_filter("Операционная система")))
         if request.url.startswith(START_URL):
-            method = lambda driver: len(driver.find_elements(By.CSS_SELECTOR, "div.widget-search-result-container.i7x > .xi7 > .vi6.v6i")) == self.ITEMS_PER_PAGE
+            method = (
+                lambda driver: len(
+                    driver.find_elements(By.CSS_SELECTOR, "div.widget-search-result-container.i7x > .xi7 > .vi6.v6i")
+                )
+                == self.ITEMS_PER_PAGE
+            )
 
         self.driver.get(request.url)
         WebDriverWait(self.driver, timeout=self.PAGE_LOADING_TIMEOUT).until(method)
         time.sleep(self.COMMON_TIMEOUT)
         content = self.driver.page_source
         self.driver.delete_all_cookies()
-        return HtmlResponse(
-            request.url, encoding="utf-8", body=content, request=request
-        )
+        return HtmlResponse(request.url, encoding="utf-8", body=content, request=request)
 
     def process_response(self, request, response, spider):
         # Called with the response returned from the downloader.
@@ -135,7 +137,6 @@ class PhonesParserDownloaderMiddleware:
         # - return a Response object
         # - return a Request object
         # - or raise IgnoreRequest
-        print("response", response)
         return response
 
     def process_exception(self, request, exception, spider):
