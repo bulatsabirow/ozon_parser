@@ -16,17 +16,15 @@ class PhonesParserPipeline:
         self.items = []
 
     def process_item(self, item, spider):
-        adapter = ItemAdapter(item)
         item.setdefault("os", "Другое")
-        item.setdefault('version', None)
-        print("adapter = ", adapter.item)
+        item.setdefault("version", None)
+        print("item = ", item)
         self.items.append(item)
         return item
 
     def close_spider(self, spider):
         dataframe = pd.DataFrame(self.items)
-        distribution = dataframe.value_counts(sort=True)
+        distribution = dataframe.value_counts(sort=True, dropna=False)
 
         with open(os.path.join("..", "results.csv"), "w", encoding="utf-8") as file:
             file.write(distribution.to_csv())
-        print("Results: ", dataframe, distribution, sep="\n")
