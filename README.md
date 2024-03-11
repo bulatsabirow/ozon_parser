@@ -3,15 +3,18 @@
 1. [Python >= 3.10](https://python.org/downloads/)
 2. [Poetry](https://pypi.org/project/poetry/) 
 ## Project Setup
-1. Enter the virtual environment:
+1. Create and activate a virtual environment:
+
     ```shell
-   Poetry shell
+   poetry shell
    ```
 2. Install required dependencies:
+
    ```shell
-   Poetry install
+   poetry install
    ```
 3. To run the scrapy crawler, enter the following command:
+
    ```shell
    cd phones_parser && scrapy crawl ozon_phones
    ```
